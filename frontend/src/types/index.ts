@@ -101,7 +101,90 @@ export interface Feedback {
   analysis?: string
   sentiment: 'positive' | 'neutral' | 'negative'
   action_items?: string[]
+  interview_type?: string
+  stage?: string
+  analyzed?: boolean
+  analysis_id?: number
   created_at: string
+}
+
+// Comprehensive Feedback Analysis types
+export interface FeedbackAnalysis {
+  id: number
+  user_id: number
+  feedback_id?: number
+  source: 'rejection_email' | 'interview_feedback' | 'self_reflection' | 'mentor_feedback'
+  company?: string
+  role?: string
+  original_message: string
+  identified_reasons: string[]
+  skill_gaps: string[]
+  behavioral_gaps: string[]
+  resume_issues: string[]
+  technical_gaps: string[]
+  strengths_detected: string[]
+  confidence_level: 'low' | 'medium' | 'high'
+  readiness_score: number
+  recommended_actions: string[]
+  learning_plan: LearningPlanItem[]
+  project_suggestions: string[]
+  resume_improvements: string[]
+  next_steps: string[]
+  summary_message: string
+  processing_time_ms?: number
+  created_at: string
+}
+
+export interface LearningPlanItem {
+  area: string
+  action: string
+  timeline: string
+}
+
+export interface LearningPriority {
+  id: number
+  user_id: number
+  feedback_analysis_id?: number
+  area: string
+  action: string
+  timeline?: string
+  priority_rank: number
+  status: 'pending' | 'in_progress' | 'completed' | 'skipped'
+  progress_percentage: number
+  created_at: string
+}
+
+export interface FeedbackPattern {
+  recurring_themes: Array<{
+    theme: string
+    frequency: string
+    severity: 'critical' | 'significant' | 'minor'
+    examples: string[]
+  }>
+  skill_gaps_pattern: string[]
+  strength_patterns: string[]
+  interview_stage_analysis?: {
+    early_stage_issues: string[]
+    later_stage_issues: string[]
+  }
+  root_causes: string[]
+  systemic_recommendations: Array<{
+    recommendation: string
+    addresses: string
+    implementation: string
+  }>
+  priority_improvements: string[]
+  positive_trends: string[]
+  summary: string
+}
+
+export interface FeedbackAnalysisRequest {
+  source: 'rejection_email' | 'interview_feedback' | 'self_reflection' | 'mentor_feedback'
+  company?: string
+  role?: string
+  message: string
+  interview_type?: string
+  stage?: string
 }
 
 export interface Resume {

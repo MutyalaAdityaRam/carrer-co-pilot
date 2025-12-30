@@ -1,5 +1,5 @@
 import axios, { AxiosError } from 'axios'
-import type { ApiResponse, AuthResponse, User, Skill, Goal, Plan, Application, Feedback, DashboardData, Opportunity, Resume, ResumeMatchAnalysis } from '../types'
+import type { ApiResponse, AuthResponse, User, Skill, Goal, Plan, Application, Feedback, FeedbackAnalysis, LearningPriority, FeedbackPattern, FeedbackAnalysisRequest, DashboardData, Opportunity, Resume, ResumeMatchAnalysis } from '../types'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api'
 const PYTHON_API_URL = import.meta.env.VITE_PYTHON_API_URL || 'http://localhost:5000'
@@ -235,8 +235,25 @@ export const feedbackApi = {
     return data.data!
   },
   
-  getStats: async (): Promise<unknown> => {
-    const { data } = await api.get<ApiResponse<unknown>>('/feedback/stats')
+  getStats: async (): Promise<{
+    total: number
+    rejections: number
+    interviews: number
+    positive: number
+    negative: number
+  }> => {
+    const { data } = await api.get<ApiResponse<{
+      total: number
+      rejections: number
+      interviews: number
+      positive: number
+      negative: number
+    }>>('/feedback/stats')
+    return data.data!
+  },
+  
+  get: async (id: number): Promise<Feedback> => {
+    const { data } = await api.get<ApiResponse<Feedback>>(`/feedback/${id}`)
     return data.data!
   },
   
@@ -251,6 +268,85 @@ export const feedbackApi = {
   
   delete: async (id: number): Promise<void> => {
     await api.delete(`/feedback/${id}`)
+  },
+  
+  // Comprehensive Analysis APIs
+  analyzeComprehensive: async (feedbackData: FeedbackAnalysisRequest): Promise<{
+    analysis: FeedbackAnalysis
+    processing_time_ms?: number
+  }> => {
+    const { data } = await api.post<ApiResponse<{
+      analysis: FeedbackAnalysis
+      processing_time_ms?: number
+    }>>('/feedback/analyze', feedbackData)
+    return data.data!
+  },
+  
+  analyzeAndSave: async (feedbackData: FeedbackAnalysisRequest): Promise<{
+    feedback_id: number
+    analysis_id?: number
+    analysis: FeedbackAnalysis
+    processing_time_ms?: number
+    analysis_error?: string
+  }> => {
+    const { data } = await api.post<ApiResponse<{
+      feedback_id: number
+      analysis_id?: number
+      analysis: FeedbackAnalysis
+      processing_time_ms?: number
+      analysis_error?: string
+    }>>('/feedback/analyze-and-save', feedbackData)
+    return data.data!
+  },
+  
+  getAnalysis: async (feedbackId: number): Promise<FeedbackAnalysis> => {
+    const { data } = await api.get<ApiResponse<FeedbackAnalysis>>(`/feedback/${feedbackId}/analysis`)
+    return data.data!
+  },
+  
+  getAllAnalyses: async (limit?: number): Promise<{
+    analyses: FeedbackAnalysis[]
+    count: number
+  }> => {
+    const params: Record<string, unknown> = {}
+    if (limit) params.limit = limit
+    const { data } = await api.get<ApiResponse<{
+      analyses: FeedbackAnalysis[]
+      count: number
+    }>>('/feedback/analyses', { params })
+    return data.data!
+  },
+  
+  detectPatterns: async (): Promise<{
+    patterns: FeedbackPattern | null
+    message?: string
+  }> => {
+    const { data } = await api.get<ApiResponse<{
+      patterns: FeedbackPattern | null
+      message?: string
+    }>>('/feedback/patterns')
+    return data.data!
+  },
+  
+  // Learning Priorities
+  getLearningPriorities: async (status?: string): Promise<{
+    priorities: LearningPriority[]
+    count: number
+  }> => {
+    const params: Record<string, unknown> = {}
+    if (status) params.status = status
+    const { data } = await api.get<ApiResponse<{
+      priorities: LearningPriority[]
+      count: number
+    }>>('/feedback/priorities', { params })
+    return data.data!
+  },
+  
+  updateLearningPriority: async (id: number, updates: {
+    status?: 'pending' | 'in_progress' | 'completed' | 'skipped'
+    progress_percentage?: number
+  }): Promise<void> => {
+    await api.put(`/feedback/priorities/${id}`, updates)
   }
 }
 
