@@ -457,13 +457,23 @@ class HTMLPDFGenerator:
 """
     
     def __init__(self, output_dir: str = None):
-        # Use absolute path relative to project root
+        # Use absolute path to the resumes folder in the project root
         if output_dir is None:
-            base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-            output_dir = os.path.join(base_dir, "resumes")
+            # Get the absolute path to the ai-main directory
+            # This file is in: ai-main/python-agents/services/html_pdf_generator.py
+            # We need to go up 3 levels to get to ai-main, then down to resumes
+            current_file = os.path.abspath(__file__)
+            services_dir = os.path.dirname(current_file)  # python-agents/services
+            python_agents_dir = os.path.dirname(services_dir)  # python-agents
+            ai_main_dir = os.path.dirname(python_agents_dir)  # ai-main
+            output_dir = os.path.join(ai_main_dir, "resumes")
+        
         self.output_dir = output_dir
+        print(f"[HTMLPDFGenerator] Output directory set to: {self.output_dir}")
+        
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
+            print(f"[HTMLPDFGenerator] Created output directory: {self.output_dir}")
         
         # Initialize Jinja2 environment
         self.jinja_env = Environment(loader=BaseLoader())
@@ -499,6 +509,7 @@ class HTMLPDFGenerator:
                 filename += '.pdf'
             
             filepath = os.path.join(self.output_dir, filename)
+            print(f"[HTMLPDFGenerator] Generating PDF at: {filepath}")
             
             # Render HTML from template
             html_content = self.template.render(**resume_data)
